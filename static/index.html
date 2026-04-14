@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assistant RSE — Saint-Gobain</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sg:      { DEFAULT: '#00205C', light: '#0047BB', pale: '#EEF2FF' },
+            rse:     { DEFAULT: '#008751', light: '#22C55E', pale: '#F0FDF4' },
+            warn:    { DEFAULT: '#D97706', pale: '#FFFBEB' },
+            danger:  { DEFAULT: '#DC2626', pale: '#FEF2F2' },
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          boxShadow: {
+            card:  '0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06)',
+            hover: '0 4px 16px rgba(0,32,92,.12)',
+            float: '0 8px 30px rgba(0,0,0,.12)',
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* ─── Base ─────────────────────────────────────────────── */
+    body { font-family: 'Inter', sans-serif; background: #F5F7FA; color: #1E293B; }
+    *   { box-sizing: border-box; }
+
+    /* ─── Upload zone ───────────────────────────────────────── */
+    #dropZone {
+      border: 2px dashed #CBD5E1;
+      transition: border-color .2s, background .2s;
+    }
+    #dropZone.drag-over, #dropZone:hover {
+      border-color: #00205C;
+      background: #EEF2FF;
+    }
+
+    /* ─── Step connector line ───────────────────────────────── */
+    .step-line { height: 2px; flex: 1; background: #E2E8F0; transition: background .4s; }
+    .step-line.done { background: #008751; }
+
+    /* ─── Progress bar ──────────────────────────────────────── */
+    #progressBar {
+      background: linear-gradient(90deg, #00205C 0%, #008751 100%);
+      transition: width .6s ease;
+    }
+
+    /* ─── Slide-up animation ────────────────────────────────── */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .slide-up { animation: slideUp .35s ease forwards; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .fade-in { animation: fadeIn .3s ease forwards; }
+
+    /* ─── Spinner ───────────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 20px; height: 20px; border: 3px solid #E2E8F0;
+      border-top-color: #00205C; border-radius: 50%;
+      animation: spin .8s linear infinite; display: inline-block;
+    }
+
+    /* ─── Pulse dot ─────────────────────────────────────────── */
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+    .pulse-dot { animation: pulse 1.4s ease-in-out infinite; }
+
+    /* ─── Card hover ────────────────────────────────────────── */
+    .answer-card { transition: box-shadow .15s, transform .15s; }
+    .answer-card:hover { box-shadow: 0 4px 16px rgba(0,32,92,.12); transform: translateY(-1px); }
+
+    /* ─── Custom scrollbar ──────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #F1F5F9; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+
+    /* ─── Theme badge colours ───────────────────────────────── */
+    .badge-co2       { background:#DBEAFE; color:#1D4ED8; }
+    .badge-dechets   { background:#D1FAE5; color:#065F46; }
+    .badge-bio       { background:#ECFDF5; color:#047857; }
+    .badge-ss        { background:#FEE2E2; color:#991B1B; }
+    .badge-div       { background:#EDE9FE; color:#6D28D9; }
+    .badge-achats    { background:#FEF3C7; color:#92400E; }
+    .badge-gouv      { background:#F1F5F9; color:#334155; }
+    .badge-comm      { background:#FCE7F3; color:#9D174D; }
+    .badge-autre     { background:#F8FAFC; color:#64748B; }
+
+    /* ─── Perimetre radio buttons ───────────────────────────── */
+    .peri-btn {
+      cursor: pointer; border: 2px solid #E2E8F0;
+      transition: border-color .15s, background .15s;
+    }
+    .peri-btn.selected { border-color: #00205C; background: #EEF2FF; }
+    .peri-btn.selected .peri-label { color: #00205C; font-weight: 600; }
+    .peri-btn.selected .peri-dot { background: #00205C; }
+
+    /* ─── Confidence pill ───────────────────────────────────── */
+    .conf-high   { background:#DCFCE7; color:#166534; }
+    .conf-medium { background:#FEF9C3; color:#854D0E; }
+    .conf-low    { background:#FEE2E2; color:#991B1B; }
+
+    /* ─── Checkbox ──────────────────────────────────────────── */
+    input[type=checkbox] {
+      accent-color: #00205C;
+      width: 16px; height: 16px; cursor: pointer;
+    }
+
+    /* ─── Disabled scroll when modal open ──────────────────── */
+    body.modal-open { overflow: hidden; }
+
+    /* ─── Inline citation badges ─[1]─ ──────────────────────── */
+    .cite-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; font-style: normal;
+      background: #FF5F46; color: #fff;
+      border-radius: 4px; padding: 1px 4px; margin: 0 1px;
+      vertical-align: super; line-height: 1; cursor: default;
+      font-family: 'Inter', monospace;
+    }
+
+    /* ─── Sources toggle button ─────────────────────────────── */
+    .sources-toggle {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 600; color: #1B5162;
+      background: #EFF6FF; border: 1px solid #BFDBFE;
+      border-radius: 6px; padding: 3px 10px;
+      cursor: pointer; transition: background .15s;
+      margin-top: 10px;
+    }
+    .sources-toggle:hover { background: #DBEAFE; }
+
+    /* ─── Source cards container ─────────────────────────────── */
+    .sources-cards {
+      margin-top: 8px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .sources-cards.hidden { display: none; }
+
+    /* ─── Individual source card ─────────────────────────────── */
+    .source-card {
+      display: flex; gap: 10px; align-items: flex-start;
+      background: #F8FAFF; border: 1px solid #E0EAFF;
+      border-radius: 8px; padding: 8px 10px;
+    }
+    .source-card-link {
+      cursor: pointer; text-decoration: none; color: inherit;
+      transition: border-color .15s, background .15s, box-shadow .15s;
+    }
+    .source-card-link:hover {
+      border-color: #1B5162; background: #EEF7FA;
+      box-shadow: 0 2px 8px rgba(27,81,98,.1);
+    }
+    .source-num {
+      flex-shrink: 0;
+      background: #FF5F46; color: #fff;
+      font-size: 9px; font-weight: 700;
+      border-radius: 4px; padding: 2px 5px;
+      font-family: monospace; margin-top: 1px;
+    }
+    .source-body { min-width: 0; flex: 1; }
+    .source-title { font-size: 11px; font-weight: 600; color: #1B3138; line-height: 1.3; }
+    .source-meta  { font-size: 10px; color: #618794; margin-top: 2px; }
+    .source-excerpt {
+      font-size: 10px; color: #475569; margin-top: 4px;
+      font-style: italic; line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .source-open-icon {
+      flex-shrink: 0; color: #1B5162; font-size: 13px;
+      opacity: 0.6; margin-top: 1px;
+    }
+    .source-card-link:hover .source-open-icon { opacity: 1; }
+
+    /* ─── PDF Viewer Modal ───────────────────────────────────── */
+    .pdf-modal-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,.65); backdrop-filter: blur(3px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .pdf-modal-overlay.hidden { display: none; }
+    .pdf-modal-dialog {
+      background: #fff; border-radius: 14px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.35);
+      width: 100%; max-width: 900px; height: 90vh;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .pdf-modal-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 16px; height: 48px; flex-shrink: 0;
+      background: #1B3138; border-radius: 14px 14px 0 0;
+    }
+    .pdf-modal-title {
+      flex: 1; min-width: 0;
+      font-size: 13px; font-weight: 600; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pdf-modal-btn {
+      flex-shrink: 0; background: rgba(255,255,255,.12); border: none;
+      color: #fff; width: 30px; height: 30px; border-radius: 6px;
+      cursor: pointer; font-size: 14px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none; transition: background .15s;
+    }
+    .pdf-modal-btn:hover { background: rgba(255,255,255,.25); }
+    .pdf-search-banner {
+      flex-shrink: 0; display: flex; align-items: flex-start; gap: 8px;
+      background: #FEFCE8; border-bottom: 1px solid #FDE047;
+      padding: 8px 16px; font-size: 11.5px; color: #713F12;
+    }
+    .pdf-search-banner.hidden { display: none; }
+    .pdf-search-label {
+      font-weight: 600; white-space: nowrap; margin-top: .5px;
+    }
+    .pdf-search-value {
+      font-style: italic; line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    /* ─── Native PDF iframe ─────────────────────────────────────── */
+    .pdf-iframe {
+      flex: 1; min-height: 0; width: 100%; border: none; display: block;
+    }
+
+    /* ─── Navigation tabs ───────────────────────────────────────── */
+    .nav-tab {
+      padding: 10px 20px; font-size: 13px; font-weight: 500;
+      border-bottom: 2px solid transparent; cursor: pointer;
+      color: #64748B; white-space: nowrap; background: none;
+      border-top: none; border-left: none; border-right: none;
+      transition: color .15s, border-color .15s;
+    }
+    .nav-tab:hover { color: #00205C; }
+    .nav-tab.active { color: #00205C; border-bottom-color: #00205C; font-weight: 600; }
+
+    /* ─── Chat layout ────────────────────────────────────────────── */
+    #chat-view {
+      max-width: 900px; margin: 0 auto; padding: 0 24px 24px;
+      display: flex; flex-direction: column;
+      height: calc(100vh - 130px);
+    }
+    .chat-messages {
+      flex: 1; overflow-y: auto; padding: 20px 0 8px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .chat-bubble-wrap {
+      display: flex; gap: 10px; align-items: flex-start; max-width: 85%;
+    }
+    .chat-bubble-wrap.user   { align-self: flex-end; flex-direction: row-reverse; }
+    .chat-bubble-wrap.assistant { align-self: flex-start; }
+    .chat-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; flex-shrink: 0;
+    }
+    .chat-avatar.user      { background: #00205C; color: #fff; }
+    .chat-avatar.assistant { background: #FF5F46; color: #fff; }
+    .chat-bubble {
+      border-radius: 16px; padding: 10px 14px;
+      font-size: 13px; line-height: 1.6; max-width: 100%;
+    }
+    .chat-bubble.user {
+      background: #00205C; color: #fff; border-bottom-right-radius: 4px;
+    }
+    .chat-bubble.assistant {
+      background: #fff; color: #1E293B;
+      border: 1px solid #E2E8F0; border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .chat-thinking {
+      display: flex; gap: 4px; align-items: center; padding: 4px 0;
+    }
+    .chat-thinking span {
+      width: 6px; height: 6px; border-radius: 50%; background: #94A3B8;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    .chat-thinking span:nth-child(2) { animation-delay: .2s; }
+    .chat-thinking span:nth-child(3) { animation-delay: .4s; }
+    .chat-input-bar {
+      background: #fff; border: 1px solid #E2E8F0; border-radius: 14px;
+      padding: 10px 12px; display: flex; align-items: flex-end; gap: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06); flex-shrink: 0;
+    }
+    #chat-input {
+      flex: 1; border: none; outline: none; resize: none;
+      font-size: 13px; color: #1E293B; background: transparent;
+      font-family: 'Inter', sans-serif; line-height: 1.5; max-height: 120px; overflow-y: auto;
+    }
+    #chat-input::placeholder { color: #94A3B8; }
+    .chat-send-btn {
+      background: #00205C; color: #fff; border: none; border-radius: 8px;
+      padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: background .15s; flex-shrink: 0;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .chat-send-btn:hover    { background: #0047BB; }
+    .chat-send-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+    .chat-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0 4px; flex-shrink: 0;
+    }
+    .chat-peri-btn {
+      font-size: 11px; font-weight: 500; padding: 3px 10px;
+      border-radius: 20px; cursor: pointer; border: 1.5px solid #E2E8F0;
+      color: #64748B; background: #fff; transition: all .15s;
+    }
+    .chat-peri-btn.active { background: #00205C; color: #fff; border-color: #00205C; }
+    .chat-new-btn {
+      font-size: 11px; font-weight: 500; padding: 3px 10px;
+      border-radius: 20px; cursor: pointer; border: 1.5px solid #E2E8F0;
+      color: #64748B; background: #fff; transition: all .15s;
+    }
+    .chat-new-btn:hover { border-color: #DC2626; color: #DC2626; }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<!-- ══════════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════════ -->
+<header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+  <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+
+    <!-- Logo + title -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
+        <!-- SG monogram -->
+        <div class="w-8 h-8 rounded-md bg-[#00205C] flex items-center justify-center shrink-0">
+          <span class="text-white font-bold text-[11px] tracking-widest">SG</span>
+        </div>
+        <div class="leading-tight">
+          <div class="text-[#00205C] font-bold text-xs tracking-widest uppercase">Saint-Gobain</div>
+          <div class="text-[#008751] text-[10px] font-semibold tracking-wide">SGDBF · Point P</div>
+        </div>
+      </div>
+      <div class="w-px h-6 bg-slate-200 mx-1"></div>
+      <div>
+        <h1 class="font-semibold text-slate-800 text-sm leading-tight">Questionnaires RSE <span class="text-[10px] font-bold text-[#FF5F46] bg-orange-50 px-1.5 py-0.5 rounded ml-1">v2</span></h1>
+        <p class="text-slate-400 text-[11px] leading-tight">Complétion automatique · Citations documentaires</p>
+      </div>
+    </div>
+
+    <!-- Databricks badge -->
+    <div class="flex items-center gap-2">
+      <span class="text-slate-400 text-xs hidden sm:block">Propulsé par</span>
+      <div class="flex items-center gap-1.5 border border-slate-200 rounded-md px-2.5 py-1.5 bg-slate-50">
+        <div class="w-3.5 h-3.5 rounded-sm bg-[#FF3621] shrink-0"></div>
+        <span class="text-xs font-semibold text-slate-700">Databricks</span>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     NAVIGATION TABS
+══════════════════════════════════════════════════════════ -->
+<nav class="bg-white border-b border-slate-200 sticky top-14 z-40">
+  <div class="max-w-6xl mx-auto px-6 flex gap-0">
+    <button id="tab-questionnaire" class="nav-tab active" onclick="switchTab('questionnaire')">
+      📋 Questionnaire
+    </button>
+    <button id="tab-chatbot" class="nav-tab" onclick="switchTab('chatbot')">
+      💬 Assistant RSE
+    </button>
+  </div>
+</nav>
+
+<div id="view-questionnaire">
+
+<!-- ══════════════════════════════════════════════════════════
+     STEP INDICATOR
+══════════════════════════════════════════════════════════ -->
+<div class="bg-white border-b border-slate-100">
+  <div class="max-w-6xl mx-auto px-6 py-3">
+    <div class="flex items-center gap-0" id="stepBar">
+      <!-- Injected by JS -->
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════════════════════ -->
+<main class="max-w-6xl mx-auto px-6 py-8">
+
+  <!-- ── STEP 1: IMPORT ─────────────────────────────────────── -->
+  <section id="step1" class="fade-in">
+
+    <!-- Hero -->
+    <div class="rounded-2xl overflow-hidden mb-8"
+         style="background: linear-gradient(135deg, #00205C 0%, #004080 45%, #006B3C 100%);">
+      <div class="px-8 py-7">
+        <div class="inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1 mb-3">
+          <span class="w-2 h-2 rounded-full bg-[#22C55E]"></span>
+          <span class="text-white/80 text-xs font-medium">Nouvelle session</span>
+        </div>
+        <h2 class="text-white font-bold text-2xl mb-1.5">
+          Importez votre questionnaire RSE
+        </h2>
+        <p class="text-white/70 text-sm max-w-xl">
+          Déposez le fichier vierge reçu de votre partenaire. L'IA détectera les questions
+          et les complétera automatiquement à partir de la base de connaissances Saint-Gobain.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Upload zone + perimetre (2 cols) -->
+      <div class="lg:col-span-2 space-y-5">
+
+        <!-- Drop zone -->
+        <div id="dropZone"
+             class="rounded-xl bg-white p-10 text-center cursor-pointer select-none"
+             onclick="document.getElementById('fileInput').click()"
+             ondragover="handleDragOver(event)"
+             ondragleave="handleDragLeave(event)"
+             ondrop="handleDrop(event)">
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.pdf" class="hidden"
+                 onchange="handleFileSelect(this.files[0])" />
+
+          <!-- Icon -->
+          <div class="mx-auto mb-4 w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
+            <svg class="w-8 h-8 text-[#00205C]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/>
+            </svg>
+          </div>
+
+          <p class="text-slate-700 font-semibold text-base mb-1">
+            Glissez-déposez votre fichier ici
+          </p>
+          <p class="text-slate-400 text-sm mb-4">ou cliquez pour parcourir</p>
+
+          <div class="flex items-center justify-center gap-2">
+            <span class="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200
+                          text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496
+                         19.5 6 18.996 6 18.375m-3.75.125c0-.621.504-1.125 1.125-1.125m0 0h1.5m-1.5
+                         0v-8.25A2.25 2.25 0 0 1 5.25 8.25h1.5m0 0V6.375A2.25 2.25 0 0 1 9 4.125h6a2.25
+                         2.25 0 0 1 2.25 2.25V8.25m0 0h1.5A2.25 2.25 0 0 1 21 10.5v7.875c0 .621-.504
+                         1.125-1.125 1.125m-1.5 0h-9m9 0h1.5"/>
+              </svg>
+              Excel (.xlsx)
+            </span>
+            <span class="inline-flex items-center gap-1.5 bg-red-50 border border-red-200
+                          text-red-600 text-xs font-medium px-2.5 py-1 rounded-full">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5
+                         7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504
+                         -1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504
+                         1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+              </svg>
+              PDF
+            </span>
+          </div>
+        </div>
+
+        <!-- Upload error -->
+        <div id="uploadError" class="hidden rounded-lg bg-red-50 border border-red-200 px-4 py-3
+              flex items-start gap-3 text-sm text-red-700">
+          <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0
+                     2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697
+                     16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+          </svg>
+          <span id="uploadErrorMsg"></span>
+        </div>
+
+        <!-- Perimetre selector -->
+        <div class="bg-white rounded-xl p-5 shadow-card">
+          <p class="text-sm font-semibold text-slate-700 mb-3">
+            📍 Périmètre de réponse
+          </p>
+          <div class="grid grid-cols-3 gap-3" id="perimetreGroup">
+            <div class="peri-btn rounded-lg p-3 text-center" onclick="selectPerimetre(this,'SGDBF')">
+              <div class="peri-dot w-2.5 h-2.5 rounded-full bg-slate-300 mx-auto mb-1.5
+                           transition-colors"></div>
+              <div class="peri-label text-xs font-medium text-slate-600 transition-colors">SGDBF</div>
+            </div>
+            <div class="peri-btn selected rounded-lg p-3 text-center" onclick="selectPerimetre(this,'Groupe Saint-Gobain')">
+              <div class="peri-dot w-2.5 h-2.5 rounded-full bg-slate-300 mx-auto mb-1.5
+                           transition-colors"></div>
+              <div class="peri-label text-xs font-medium text-slate-600 transition-colors">Groupe Saint-Gobain</div>
+            </div>
+            <div class="peri-btn rounded-lg p-3 text-center" onclick="selectPerimetre(this,'Point P')">
+              <div class="peri-dot w-2.5 h-2.5 rounded-full bg-slate-300 mx-auto mb-1.5
+                           transition-colors"></div>
+              <div class="peri-label text-xs font-medium text-slate-600 transition-colors">Point P</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload loading state -->
+        <div id="uploadLoading" class="hidden bg-white rounded-xl p-5 shadow-card flex items-center gap-4">
+          <div class="spinner"></div>
+          <div>
+            <p class="font-semibold text-slate-800 text-sm">Analyse du fichier en cours…</p>
+            <p class="text-slate-400 text-xs">Détection des questions RSE</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sample files (1 col) -->
+      <div class="space-y-3">
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest px-1">
+          Exemples de questionnaires
+        </p>
+        <div id="sampleList" class="space-y-2">
+          <!-- Injected by JS -->
+          <div class="animate-pulse space-y-2">
+            <div class="h-16 bg-slate-100 rounded-xl"></div>
+            <div class="h-16 bg-slate-100 rounded-xl"></div>
+            <div class="h-16 bg-slate-100 rounded-xl"></div>
+          </div>
+        </div>
+
+        <!-- Info box -->
+        <div class="rounded-xl bg-sg-pale border border-sg-light/20 p-4 mt-2">
+          <p class="text-xs font-semibold text-[#00205C] mb-1.5">💡 Comment ça marche ?</p>
+          <ol class="text-xs text-slate-600 space-y-1.5 list-none">
+            <li class="flex gap-2"><span class="text-[#008751] font-bold">①</span> Importez le questionnaire vierge reçu de votre partenaire</li>
+            <li class="flex gap-2"><span class="text-[#008751] font-bold">②</span> Vérifiez les questions détectées</li>
+            <li class="flex gap-2"><span class="text-[#008751] font-bold">③</span> L'IA génère les réponses depuis la base RSE</li>
+            <li class="flex gap-2"><span class="text-[#008751] font-bold">④</span> Téléchargez le fichier complété</li>
+          </ol>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── STEP 2: REVIEW ─────────────────────────────────────── -->
+  <section id="step2" class="hidden fade-in">
+
+    <!-- Top bar -->
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-slate-800">Vérifier les questions détectées</h2>
+        <p class="text-slate-500 text-sm mt-0.5">
+          Sélectionnez les questions à inclure dans la génération.
+        </p>
+      </div>
+      <button onclick="goToStep(1)"
+              class="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+        </svg>
+        Changer de fichier
+      </button>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" id="step2Stats">
+    </div>
+
+    <!-- Theme filter tabs -->
+    <div class="bg-white rounded-xl shadow-card overflow-hidden mb-0">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+        <div id="themeTabs" class="flex items-center gap-1 overflow-x-auto pb-0.5">
+          <!-- injected by JS -->
+        </div>
+        <div class="flex items-center gap-3 shrink-0 pl-4">
+          <button onclick="selectAll(true)"
+                  class="text-xs text-[#00205C] font-medium hover:underline">Tout sélectionner</button>
+          <span class="text-slate-200">|</span>
+          <button onclick="selectAll(false)"
+                  class="text-xs text-slate-400 hover:text-slate-600 hover:underline">Désélectionner</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-100 text-xs text-slate-500 uppercase tracking-wider">
+              <th class="w-10 px-4 py-2.5 text-center">
+                <input type="checkbox" id="masterCheck" onchange="masterCheckChange(this)" />
+              </th>
+              <th class="px-4 py-2.5 text-left font-medium">Question</th>
+              <th class="px-4 py-2.5 text-left font-medium hidden md:table-cell">Thème</th>
+              <th class="px-4 py-2.5 text-left font-medium hidden lg:table-cell">Feuille</th>
+              <th class="px-4 py-2.5 text-left font-medium hidden sm:table-cell">Format</th>
+            </tr>
+          </thead>
+          <tbody id="questionsTable">
+            <!-- injected by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- No questions state -->
+      <div id="noQuestionsMsg" class="hidden py-16 text-center px-6">
+        <div class="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center
+                     justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/>
+          </svg>
+        </div>
+        <p class="font-semibold text-slate-700">Aucune question détectée</p>
+        <p class="text-sm text-slate-400 mt-1 max-w-sm mx-auto">
+          Assurez-vous que le fichier contient bien une colonne intitulée
+          <strong>"Question"</strong> ou <strong>"Réponse"</strong>, ou que les questions se terminent par <strong>?</strong>
+        </p>
+        <button onclick="goToStep(1)"
+                class="mt-4 text-sm text-[#00205C] font-medium hover:underline">← Changer de fichier</button>
+      </div>
+    </div>
+
+    <!-- Footer CTA -->
+    <div class="mt-5 flex items-center justify-between">
+      <p class="text-xs text-slate-400">
+        <span id="selectedCount">0</span> question(s) sélectionnée(s)
+      </p>
+      <button id="generateBtn" onclick="startGeneration()"
+              class="flex items-center gap-2 bg-[#00205C] hover:bg-[#0047BB] text-white
+                     font-semibold text-sm px-6 py-2.5 rounded-lg transition-colors shadow-sm
+                     disabled:opacity-40 disabled:cursor-not-allowed">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5
+                   4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5
+                   4.5 0 0 0-3.09 3.09Z"/>
+        </svg>
+        Générer les réponses (<span id="generateBtnCount">0</span>)
+      </button>
+    </div>
+  </section>
+
+
+  <!-- ── STEP 3: PROCESSING ─────────────────────────────────── -->
+  <section id="step3" class="hidden fade-in">
+
+    <div class="max-w-2xl mx-auto">
+
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+             style="background:linear-gradient(135deg,#00205C,#008751)">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5
+                     4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5
+                     4.5 0 0 0-3.09 3.09Z"/>
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-slate-800">Génération des réponses</h2>
+        <p class="text-slate-500 text-sm mt-1">
+          Interrogation de la base de connaissances RSE Saint-Gobain…
+        </p>
+      </div>
+
+      <!-- Progress -->
+      <div class="bg-white rounded-xl p-5 shadow-card mb-5">
+        <div class="flex items-center justify-between text-sm mb-3">
+          <div class="flex items-center gap-2">
+            <span class="pulse-dot w-2 h-2 rounded-full bg-[#008751]"></span>
+            <span class="font-medium text-slate-700" id="progressLabel">Démarrage…</span>
+          </div>
+          <span class="font-bold text-[#00205C]" id="progressPct">0%</span>
+        </div>
+        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div id="progressBar" class="h-full rounded-full w-0"></div>
+        </div>
+        <p class="text-xs text-slate-400 mt-2" id="progressSub">Patientez…</p>
+      </div>
+
+      <!-- Live feed -->
+      <div id="liveFeed" class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ── STEP 4: RESULTS ────────────────────────────────────── -->
+  <section id="step4" class="hidden fade-in">
+
+    <!-- Top bar -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-slate-800">Réponses générées</h2>
+        <p class="text-slate-500 text-sm mt-0.5">
+          Relisez et validez avant envoi. Cliquez sur ✎ pour éditer une réponse.
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="goToStep(1)"
+                class="text-sm text-slate-500 hover:text-slate-700 border border-slate-200
+                        rounded-lg px-4 py-2 transition-colors hover:border-slate-300">
+          Nouveau questionnaire
+        </button>
+        <button onclick="downloadResult()"
+                class="flex items-center gap-2 bg-[#008751] hover:bg-[#006B3C] text-white
+                        font-semibold text-sm px-5 py-2 rounded-lg transition-colors shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5
+                     12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+          </svg>
+          Télécharger (.xlsx)
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6" id="step4Stats">
+    </div>
+
+    <!-- Warning banner -->
+    <div class="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 mb-5
+                 flex items-start gap-3 text-sm text-amber-800">
+      <svg class="w-4 h-4 mt-0.5 shrink-0 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0
+                 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697
+                 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+      </svg>
+      <span>
+        <strong>Validation humaine requise.</strong>
+        Ces réponses ont été générées automatiquement. Assurez-vous de les vérifier,
+        notamment celles marquées <span class="font-semibold text-amber-700">À vérifier</span>, avant tout envoi à un partenaire.
+      </span>
+    </div>
+
+    <!-- Filter row -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2" id="resultsFilter">
+        <button onclick="setResultsFilter('all')"
+                id="filterAll"
+                class="results-filter-btn active text-xs font-medium px-3 py-1.5 rounded-full
+                        bg-[#00205C] text-white transition-colors">
+          Toutes
+        </button>
+        <button onclick="setResultsFilter('high')"
+                id="filterHigh"
+                class="results-filter-btn text-xs font-medium px-3 py-1.5 rounded-full
+                        bg-white border border-slate-200 text-slate-600 hover:border-[#008751]
+                        hover:text-[#008751] transition-colors">
+          ✓ Haute confiance
+        </button>
+        <button onclick="setResultsFilter('medium')"
+                id="filterMedium"
+                class="results-filter-btn text-xs font-medium px-3 py-1.5 rounded-full
+                        bg-white border border-slate-200 text-slate-600 hover:border-amber-400
+                        hover:text-amber-600 transition-colors">
+          ~ Confiance moyenne
+        </button>
+        <button onclick="setResultsFilter('review')"
+                id="filterReview"
+                class="results-filter-btn text-xs font-medium px-3 py-1.5 rounded-full
+                        bg-white border border-slate-200 text-slate-600 hover:border-red-400
+                        hover:text-red-600 transition-colors">
+          ⚠ À vérifier
+        </button>
+      </div>
+      <p class="text-xs text-slate-400" id="resultsCount"></p>
+    </div>
+
+    <!-- Results cards -->
+    <div id="resultsGrid" class="space-y-3">
+    </div>
+
+    <!-- Download footer -->
+    <div class="mt-8 rounded-xl border-2 border-dashed border-[#008751]/30 bg-rse-pale p-6
+                 text-center">
+      <p class="text-slate-600 text-sm mb-3">
+        <strong class="text-slate-800">Prêt à envoyer ?</strong>
+        Téléchargez le fichier Excel complété avec toutes les réponses.
+      </p>
+      <button onclick="downloadResult()"
+              class="inline-flex items-center gap-2.5 bg-[#008751] hover:bg-[#006B3C]
+                      text-white font-semibold px-8 py-3 rounded-xl transition-colors shadow-sm text-sm">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5
+                   12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+        </svg>
+        Télécharger le questionnaire complété
+      </button>
+    </div>
+
+  </section>
+
+</main>
+
+</div><!-- /view-questionnaire -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     CHATBOT VIEW
+══════════════════════════════════════════════════════════ -->
+<div id="view-chatbot" class="hidden">
+  <div id="chat-view">
+
+    <!-- Toolbar: perimetre selector + new conversation -->
+    <div class="chat-toolbar">
+      <div class="flex items-center gap-6">
+        <span class="text-xs text-slate-400 font-medium uppercase tracking-wide">Périmètre</span>
+        <div class="flex gap-2">
+          <button class="chat-peri-btn active" onclick="setChatPerimetre(this,'Groupe Saint-Gobain')">Saint-Gobain</button>
+          <button class="chat-peri-btn" onclick="setChatPerimetre(this,'SGDBF')">SGDBF</button>
+          <button class="chat-peri-btn" onclick="setChatPerimetre(this,'Point P')">Point P</button>
+        </div>
+      </div>
+      <button class="chat-new-btn" onclick="newChatConversation()">↺ Nouvelle conversation</button>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-bubble-wrap assistant">
+        <div class="chat-avatar assistant">IA</div>
+        <div>
+          <div class="chat-bubble assistant">
+            Bonjour ! Je suis l'Assistant RSE Saint-Gobain. Posez-moi vos questions sur les données RSE, les politiques développement durable, ou les performances environnementales et sociales de Saint-Gobain, SGDBF ou Point P.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input bar -->
+    <div class="chat-input-bar">
+      <textarea id="chat-input" rows="1"
+                placeholder="Posez votre question RSE…"
+                oninput="autoResizeChatInput(this)"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
+      <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/>
+        </svg>
+        Envoyer
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     EDIT MODAL
+══════════════════════════════════════════════════════════ -->
+<div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeEditModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-float w-full max-w-2xl max-h-[90vh]
+               overflow-y-auto slide-up">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <h3 class="font-semibold text-slate-800">Modifier la réponse</h3>
+      <button onclick="closeEditModal()"
+              class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center
+                      text-slate-400 hover:text-slate-600 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="p-6">
+      <p class="text-xs text-slate-500 uppercase font-semibold tracking-wider mb-2">Question</p>
+      <p class="text-slate-700 text-sm mb-5 leading-relaxed" id="modalQuestion"></p>
+      <p class="text-xs text-slate-500 uppercase font-semibold tracking-wider mb-2">Réponse</p>
+      <textarea id="modalAnswer" rows="7"
+                class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800
+                        resize-none focus:outline-none focus:border-[#00205C]
+                        focus:ring-2 focus:ring-[#00205C]/10 transition-all"
+                placeholder="Saisissez la réponse…"></textarea>
+      <div class="flex justify-end gap-3 mt-4">
+        <button onclick="closeEditModal()"
+                class="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 rounded-lg
+                        border border-slate-200 hover:border-slate-300 transition-colors">
+          Annuler
+        </button>
+        <button onclick="saveEdit()"
+                class="bg-[#00205C] hover:bg-[#0047BB] text-white text-sm font-semibold
+                        px-5 py-2 rounded-lg transition-colors">
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════ -->
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+const state = {
+  step:           1,
+  sessionId:      null,
+  filename:       null,
+  fileType:       null,
+  questions:      [],   // full list
+  perimetre:      'Groupe Saint-Gobain',
+  themeFilter:    'all',
+  resultsFilter:  'all',
+  editingId:      null,
+};
+
+const STEPS = [
+  { id: 1, label: 'Import'    },
+  { id: 2, label: 'Vérifier'  },
+  { id: 3, label: 'Générer'   },
+  { id: 4, label: 'Résultats' },
+];
+
+// ─── Theme badge ──────────────────────────────────────────────────────────────
+function themeBadgeClass(theme) {
+  const map = {
+    'CO2 & Énergie':                  'badge-co2',
+    'Économie circulaire & Déchets':  'badge-dechets',
+    'Biodiversité & Environnement':   'badge-bio',
+    'Santé-Sécurité':                 'badge-ss',
+    'Diversité & Inclusion':          'badge-div',
+    'Achats responsables':            'badge-achats',
+    'Gouvernance & Éthique':          'badge-gouv',
+    'Communautés locales':            'badge-comm',
+    'Autre':                          'badge-autre',
+  };
+  return map[theme] || 'badge-autre';
+}
+
+function confidenceClass(conf) {
+  if (conf >= 0.80) return 'conf-high';
+  if (conf >= 0.55) return 'conf-medium';
+  return 'conf-low';
+}
+function confidenceLabel(conf) {
+  if (!conf && conf !== 0) return '—';
+  if (conf >= 0.80) return `✓ ${Math.round(conf*100)}%`;
+  if (conf >= 0.55) return `~ ${Math.round(conf*100)}%`;
+  return `! ${Math.round(conf*100)}%`;
+}
+function confidenceText(conf) {
+  if (!conf && conf !== 0) return '—';
+  if (conf >= 0.80) return 'Haute confiance';
+  if (conf >= 0.55) return 'Confiance moyenne';
+  return 'À vérifier';
+}
+
+function escape(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Step navigation ──────────────────────────────────────────────────────────
+function renderStepBar() {
+  const bar = document.getElementById('stepBar');
+  bar.innerHTML = '';
+  STEPS.forEach((s, i) => {
+    const done   = state.step > s.id;
+    const active = state.step === s.id;
+
+    // Step item
+    const item = document.createElement('div');
+    item.className = 'flex items-center gap-2 shrink-0';
+
+    const circle = document.createElement('div');
+    circle.className = `w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
+      transition-all duration-300 ${
+        done   ? 'bg-[#008751] text-white' :
+        active ? 'bg-[#00205C] text-white ring-4 ring-[#00205C]/15' :
+                 'bg-slate-100 text-slate-400'
+      }`;
+    circle.innerHTML = done
+      ? `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>`
+      : s.id;
+
+    const label = document.createElement('span');
+    label.className = `text-xs font-medium hidden sm:block ${active ? 'text-[#00205C]' : done ? 'text-[#008751]' : 'text-slate-400'}`;
+    label.textContent = s.label;
+
+    item.appendChild(circle);
+    item.appendChild(label);
+    bar.appendChild(item);
+
+    // Connector (not after last)
+    if (i < STEPS.length - 1) {
+      const line = document.createElement('div');
+      line.className = `step-line mx-1 ${done ? 'done' : ''}`;
+      bar.appendChild(line);
+    }
+  });
+}
+
+function goToStep(n) {
+  document.getElementById(`step${state.step}`)?.classList.add('hidden');
+  state.step = n;
+  const el = document.getElementById(`step${n}`);
+  el?.classList.remove('hidden');
+  el?.classList.add('fade-in');
+  renderStepBar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── Perimetre ────────────────────────────────────────────────────────────────
+function selectPerimetre(el, value) {
+  document.querySelectorAll('.peri-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.perimetre = value;
+}
+
+// ─── Sample files ─────────────────────────────────────────────────────────────
+async function loadSamples() {
+  try {
+    const r = await fetch('/api/samples');
+    const samples = await r.json();
+    const list = document.getElementById('sampleList');
+    if (!samples.length) {
+      list.innerHTML = '<p class="text-xs text-slate-400 px-1">Aucun exemple disponible.</p>';
+      return;
+    }
+    list.innerHTML = samples.map(s => `
+      <div class="bg-white rounded-xl border border-slate-200 hover:border-[#00205C]
+                   p-3 cursor-pointer transition-all hover:shadow-card group"
+           onclick="loadSampleFile('${escape(s.name)}')">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+            s.type === 'xlsx' ? 'bg-emerald-50' : 'bg-red-50'
+          }">
+            ${s.type === 'xlsx'
+              ? `<svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75.125c0-.621.504-1.125 1.125-1.125m0 0h1.5m-1.5 0v-8.25A2.25 2.25 0 0 1 5.25 8.25h1.5m0 0V6.375A2.25 2.25 0 0 1 9 4.125h6a2.25 2.25 0 0 1 2.25 2.25V8.25m0 0h1.5A2.25 2.25 0 0 1 21 10.5v7.875c0 .621-.504 1.125-1.125 1.125m-1.5 0h-9m9 0h1.5"/></svg>`
+              : `<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>`
+            }
+          </div>
+          <div class="overflow-hidden">
+            <p class="text-xs font-semibold text-slate-700 truncate group-hover:text-[#00205C] transition-colors">
+              ${escape(s.name)}
+            </p>
+            <p class="text-[10px] text-slate-400">${(s.size/1024).toFixed(1)} Ko</p>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('sampleList').innerHTML =
+      '<p class="text-xs text-slate-400 px-1">Impossible de charger les exemples.</p>';
+  }
+}
+
+async function loadSampleFile(name) {
+  // Fetch the sample file, then upload it
+  const r = await fetch(`/samples/${encodeURIComponent(name)}`);
+  const blob = await r.blob();
+  const file = new File([blob], name, { type: blob.type });
+  await uploadFile(file);
+}
+
+// ─── Drag & Drop ──────────────────────────────────────────────────────────────
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.add('drag-over');
+}
+function handleDragLeave(e) {
+  document.getElementById('dropZone').classList.remove('drag-over');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) uploadFile(file);
+}
+function handleFileSelect(file) {
+  if (file) uploadFile(file);
+}
+
+// ─── Upload ───────────────────────────────────────────────────────────────────
+async function uploadFile(file) {
+  const errorEl    = document.getElementById('uploadError');
+  const errorMsg   = document.getElementById('uploadErrorMsg');
+  const loadingEl  = document.getElementById('uploadLoading');
+
+  errorEl.classList.add('hidden');
+  loadingEl.classList.remove('hidden');
+  document.getElementById('dropZone').classList.add('opacity-40', 'pointer-events-none');
+
+  const form = new FormData();
+  form.append('file', file);
+
+  try {
+    const r = await fetch('/api/upload', { method: 'POST', body: form });
+    const data = await r.json();
+
+    if (!r.ok) {
+      throw new Error(data.detail || 'Erreur lors de l\'analyse du fichier.');
+    }
+
+    state.sessionId = data.session_id;
+    state.filename  = data.filename;
+    state.fileType  = data.file_type;
+    state.questions = data.questions.map(q => ({ ...q, included: true }));
+
+    goToStep(2);
+    renderStep2();
+
+  } catch(e) {
+    errorMsg.textContent = e.message;
+    errorEl.classList.remove('hidden');
+  } finally {
+    loadingEl.classList.add('hidden');
+    document.getElementById('dropZone').classList.remove('opacity-40', 'pointer-events-none');
+  }
+}
+
+// ─── Step 2: Review ───────────────────────────────────────────────────────────
+function getSelectedQuestions() {
+  return state.questions.filter(q => q.included);
+}
+
+function getThemes() {
+  const themes = new Set(state.questions.map(q => q.theme || 'Autre'));
+  return ['all', ...Array.from(themes).sort()];
+}
+
+function getFilteredQuestions() {
+  return state.questions.filter(q =>
+    state.themeFilter === 'all' || q.theme === state.themeFilter
+  );
+}
+
+function renderStep2() {
+  const qs = state.questions;
+
+  // Stats
+  const themes = new Set(qs.map(q => q.theme));
+  const sheets = new Set(qs.map(q => q.sheet));
+  const statsEl = document.getElementById('step2Stats');
+  statsEl.innerHTML = [
+    { icon: '📋', value: qs.length, label: 'Questions détectées' },
+    { icon: '🏷️', value: themes.size, label: 'Thèmes RSE' },
+    { icon: '📄', value: sheets.size, label: state.fileType === 'pdf' ? 'Document' : 'Feuille(s)' },
+    { icon: '📂', value: state.filename, label: 'Fichier source', small: true },
+  ].map(s => `
+    <div class="bg-white rounded-xl shadow-card p-4">
+      <div class="text-xl mb-1">${s.icon}</div>
+      <div class="font-bold text-lg text-slate-800 truncate">${escape(String(s.value))}</div>
+      <div class="text-xs text-slate-400">${s.label}</div>
+    </div>
+  `).join('');
+
+  // No questions?
+  if (qs.length === 0) {
+    document.getElementById('noQuestionsMsg').classList.remove('hidden');
+    document.getElementById('questionsTable').closest('.overflow-x-auto').classList.add('hidden');
+    document.getElementById('generateBtn').disabled = true;
+    return;
+  }
+
+  renderThemeTabs();
+  renderQuestionsTable();
+  updateSelectedCount();
+}
+
+function renderThemeTabs() {
+  const themes  = getThemes();
+  const tabsEl  = document.getElementById('themeTabs');
+  tabsEl.innerHTML = themes.map(t => {
+    const count   = t === 'all' ? state.questions.length
+                                : state.questions.filter(q => q.theme === t).length;
+    const active  = state.themeFilter === t;
+    const label   = t === 'all' ? 'Tous' : t;
+    return `
+      <button onclick="setThemeFilter('${escape(t)}')"
+              class="shrink-0 flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg
+                      transition-colors whitespace-nowrap ${
+                        active
+                          ? 'bg-[#00205C] text-white'
+                          : 'text-slate-500 hover:bg-slate-100'
+                      }">
+        ${escape(label)}
+        <span class="text-[10px] ${active ? 'bg-white/20' : 'bg-slate-100'} px-1.5 py-0.5 rounded-full">${count}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function renderQuestionsTable() {
+  const qs   = getFilteredQuestions();
+  const tbody = document.getElementById('questionsTable');
+
+  if (qs.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-sm text-slate-400">
+      Aucune question pour ce thème.</td></tr>`;
+    updateSelectedCount();
+    return;
+  }
+
+  tbody.innerHTML = qs.map((q, i) => `
+    <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${i % 2 === 0 ? '' : 'bg-slate-50/30'}">
+      <td class="px-4 py-3 text-center">
+        <input type="checkbox" data-id="${q.id}" ${q.included ? 'checked' : ''}
+               onchange="toggleQuestion('${q.id}', this.checked)" />
+      </td>
+      <td class="px-4 py-3">
+        <p class="text-sm text-slate-700 leading-snug line-clamp-2">${escape(q.text)}</p>
+      </td>
+      <td class="px-4 py-3 hidden md:table-cell">
+        <span class="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full
+                      ${themeBadgeClass(q.theme)}">
+          ${escape(q.theme)}
+        </span>
+      </td>
+      <td class="px-4 py-3 text-xs text-slate-400 hidden lg:table-cell">${escape(q.sheet)}</td>
+      <td class="px-4 py-3 hidden sm:table-cell">
+        <span class="text-[11px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+          ${escape(formatLabel(q.answer_format))}
+        </span>
+      </td>
+    </tr>
+  `).join('');
+
+  updateMasterCheck();
+  updateSelectedCount();
+}
+
+function formatLabel(f) {
+  const m = { yes_no: 'Oui/Non', percent: '%', number: 'Numérique', text: 'Texte' };
+  return m[f] || f || 'Texte';
+}
+
+function setThemeFilter(theme) {
+  state.themeFilter = theme;
+  renderThemeTabs();
+  renderQuestionsTable();
+}
+
+function toggleQuestion(id, checked) {
+  const q = state.questions.find(q => q.id === id);
+  if (q) q.included = checked;
+  updateSelectedCount();
+  updateMasterCheck();
+}
+
+function selectAll(checked) {
+  const filtered = getFilteredQuestions();
+  filtered.forEach(q => q.included = checked);
+  renderQuestionsTable();
+  updateSelectedCount();
+}
+
+function masterCheckChange(el) {
+  selectAll(el.checked);
+}
+
+function updateMasterCheck() {
+  const filtered  = getFilteredQuestions();
+  const allOn     = filtered.every(q => q.included);
+  const someOn    = filtered.some(q => q.included);
+  const mc        = document.getElementById('masterCheck');
+  if (mc) {
+    mc.checked       = allOn;
+    mc.indeterminate = !allOn && someOn;
+  }
+}
+
+function updateSelectedCount() {
+  const n = getSelectedQuestions().length;
+  document.getElementById('selectedCount').textContent = n;
+  document.getElementById('generateBtnCount').textContent = n;
+  document.getElementById('generateBtn').disabled = n === 0;
+}
+
+// ─── Step 3: Processing ───────────────────────────────────────────────────────
+async function startGeneration() {
+  const selected = getSelectedQuestions();
+  if (!selected.length) return;
+
+  goToStep(3);
+
+  // Reset feed
+  document.getElementById('liveFeed').innerHTML = '';
+  document.getElementById('progressBar').style.width = '0%';
+  document.getElementById('progressPct').textContent = '0%';
+  document.getElementById('progressLabel').textContent = 'Connexion à la base RSE…';
+
+  const body = {
+    session_id:   state.sessionId,
+    perimetre:    state.perimetre,
+    question_ids: selected.map(q => q.id),
+  };
+
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erreur serveur: ${response.status}`);
+    }
+
+    const reader  = response.body.getReader();
+    const decoder = new TextDecoder();
+    let   buffer  = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();  // keep incomplete line
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const event = JSON.parse(line.slice(6));
+            handleSSE(event);
+          } catch(_) {}
+        }
+      }
+    }
+  } catch(e) {
+    document.getElementById('progressLabel').textContent = 'Erreur: ' + e.message;
+  }
+}
+
+function handleSSE(event) {
+  if (event.type === 'progress') {
+    const { question_id, index, total, answer, confidence, source, references, error } = event;
+
+    // Update state
+    const q = state.questions.find(q => q.id === question_id);
+    if (q) {
+      q.answer     = answer;
+      q.confidence = confidence;
+      q.source     = source || null;
+      q.references = references || [];
+    }
+
+    // Progress bar
+    const pct = Math.round((index / total) * 100);
+    document.getElementById('progressBar').style.width = `${pct}%`;
+    document.getElementById('progressPct').textContent = `${pct}%`;
+    document.getElementById('progressLabel').textContent =
+      `Question ${index}/${total} traitée`;
+    document.getElementById('progressSub').textContent =
+      q ? q.text.slice(0, 80) + (q.text.length > 80 ? '…' : '') : '';
+
+    // Live feed card
+    const feed = document.getElementById('liveFeed');
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-xl shadow-card p-4 slide-up';
+
+    const confClass = confidenceClass(confidence);
+    const confLbl   = confidenceLabel(confidence);
+    const refCount  = (references || []).length;
+
+    card.innerHTML = `
+      <div class="flex items-start justify-between gap-3 mb-2">
+        <p class="text-xs font-semibold text-slate-500 line-clamp-1">
+          ${escape(q ? q.text.slice(0, 90) + (q && q.text.length > 90 ? '…' : '') : '')}
+        </p>
+        <div class="flex items-center gap-1.5 shrink-0">
+          ${refCount > 0 ? `<span class="text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">📄 ${refCount}</span>` : ''}
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${confClass}">${confLbl}</span>
+        </div>
+      </div>
+      ${error
+        ? `<p class="text-xs text-red-500">⚠ ${escape(error)}</p>`
+        : `<p class="text-xs text-slate-700 leading-relaxed line-clamp-3">${renderAnswerWithCitations(answer || '—', references || [])}</p>`
+      }
+    `;
+
+    feed.prepend(card);
+
+    // When done
+    if (index === total) {
+      setTimeout(() => {
+        renderStep4();
+        goToStep(4);
+      }, 600);
+    }
+  }
+
+  if (event.type === 'done') {
+    renderStep4();
+    goToStep(4);
+  }
+}
+
+// ─── Citation helpers ─────────────────────────────────────────────────────────
+function renderAnswerWithCitations(text, refs) {
+  if (!text) return '—';
+  // Escape HTML first, then convert [N] markers to styled superscript badges.
+  // Brackets survive escaping unchanged, so replacement is safe.
+  let html = escape(text);
+  html = html.replace(/\[(\d+)\]/g, (_, n) => {
+    const ref = (refs || []).find(r => r.num === parseInt(n, 10));
+    const tip = ref ? escape(ref.display_name || ref.filename || '') : '';
+    return `<sup class="cite-badge" title="${tip}">${n}</sup>`;
+  });
+  return html;
+}
+
+function renderSourcesPanel(q) {
+  const refs = q.references || [];
+  // Fallback: if KA returned no structured citations, show a generic source label
+  if (!refs.length) {
+    const src = q.source && q.source !== 'Base de connaissances RSE' ? q.source : null;
+    if (!src) return `
+      <div class="mt-2">
+        <span class="inline-flex items-center gap-1.5 text-[10px] text-slate-400 bg-slate-50
+                     border border-slate-200 rounded-full px-2.5 py-1">
+          📚 Base de connaissances RSE — Saint-Gobain
+        </span>
+      </div>`;
+    // V1-style: filenames from source string
+    const fakeRefs = src.split(' | ').map((f, i) => ({
+      num: i + 1, filename: f, display_name: f.replace(/\.pdf$/i,'').replace(/[_-]/g,' '),
+      page: null, score: null, excerpt: '', doc_path: null,
+    }));
+    return buildSourcesHTML(q.id, fakeRefs);
+  }
+  return buildSourcesHTML(q.id, refs);
+}
+
+function _htmlEscape(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function buildSourcesHTML(qId, refs) {
+  const label = refs.length === 1 ? '1 source' : `${refs.length} sources`;
+  const cards = refs.map(r => {
+    const title = _htmlEscape(r.display_name || r.filename || 'Document');
+    const meta  = [
+      r.page  ? `p.&nbsp;${r.page}` : '',
+      r.score ? `${Math.round(r.score * 100)}&thinsp;% pertinence` : '',
+    ].filter(Boolean).join(' &middot; ');
+    // Strip HTML tags from excerpt for display
+    const rawExcerpt = (r.excerpt || '').replace(/<[^>]*>/g, '').trim();
+    const excerpt = rawExcerpt
+      ? `<div class="source-excerpt">&ldquo;${_htmlEscape(rawExcerpt.length > 200 ? rawExcerpt.slice(0, 200) + '…' : rawExcerpt)}&rdquo;</div>`
+      : '';
+    if (r.doc_path) {
+      // Clickable card — store values in data-* to avoid JS string escaping issues
+      const safeDoc    = _htmlEscape(r.doc_path);
+      const safeSearch = _htmlEscape(rawExcerpt);
+      const safeName   = _htmlEscape(r.display_name || r.filename || '');
+      return `
+      <div class="source-card source-card-link"
+           data-path="${safeDoc}"
+           data-search="${safeSearch}"
+           data-name="${safeName}"
+           onclick="openDocViewer(this.dataset.path,this.dataset.search,this.dataset.name)">
+        <div class="source-num">${r.num}</div>
+        <div class="source-body">
+          <div class="source-title">${title}</div>
+          ${meta ? `<div class="source-meta">${meta}</div>` : ''}
+          ${excerpt}
+        </div>
+        <div class="source-open-icon" title="Ouvrir le document">↗</div>
+      </div>`;
+    }
+    return `
+      <div class="source-card">
+        <div class="source-num">${r.num}</div>
+        <div class="source-body">
+          <div class="source-title">${title}</div>
+          ${meta ? `<div class="source-meta">${meta}</div>` : ''}
+          ${excerpt}
+        </div>
+      </div>`;
+  }).join('');
+  return `
+    <div class="mt-2">
+      <button class="sources-toggle" onclick="toggleSources('${qId}')">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5
+                   a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125
+                   1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+        </svg>
+        ${label}
+        <span id="srcchev-${qId}" style="font-size:8px">▼</span>
+      </button>
+      <div class="sources-cards hidden" id="srccards-${qId}">${cards}</div>
+    </div>`;
+}
+
+function toggleSources(qId) {
+  const cards = document.getElementById(`srccards-${qId}`);
+  const chev  = document.getElementById(`srcchev-${qId}`);
+  if (!cards) return;
+  const nowHidden = cards.classList.toggle('hidden');
+  if (chev) chev.textContent = nowHidden ? '▼' : '▲';
+}
+
+// ─── Step 4: Results ──────────────────────────────────────────────────────────
+function setResultsFilter(f) {
+  state.resultsFilter = f;
+  document.querySelectorAll('.results-filter-btn').forEach(b => {
+    const isActive = b.id === `filter${f.charAt(0).toUpperCase() + f.slice(1)}`;
+    b.className = b.className
+      .replace('bg-[#00205C] text-white', '')
+      .replace('bg-white border border-slate-200 text-slate-600', '').trim();
+    if (isActive) {
+      b.classList.add('bg-[#00205C]', 'text-white');
+      b.classList.remove('bg-white', 'border', 'border-slate-200', 'text-slate-600');
+    } else {
+      b.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-600');
+      b.classList.remove('bg-[#00205C]', 'text-white');
+    }
+  });
+  renderResultsGrid();
+}
+
+function getResultsQuestions() {
+  const answered = state.questions.filter(q => q.included && q.answer);
+  if (state.resultsFilter === 'high')   return answered.filter(q => (q.confidence||0) >= 0.80);
+  if (state.resultsFilter === 'medium') return answered.filter(q => (q.confidence||0) >= 0.55 && (q.confidence||0) < 0.80);
+  if (state.resultsFilter === 'review') return answered.filter(q => (q.confidence||0) < 0.55);
+  return answered;
+}
+
+function renderStep4() {
+  const answered = state.questions.filter(q => q.included && q.answer);
+  const high     = answered.filter(q => (q.confidence||0) >= 0.80).length;
+  const review   = answered.filter(q => (q.confidence||0) < 0.55).length;
+  const medium   = answered.length - high - review;
+
+  document.getElementById('step4Stats').innerHTML = [
+    { icon: '✅', value: answered.length, label: 'Questions répondues', color: '' },
+    { icon: '🟢', value: high,    label: 'Haute confiance',    color: 'text-[#008751]' },
+    { icon: '🟡', value: medium,  label: 'Confiance moyenne',  color: 'text-amber-600' },
+    { icon: '🔴', value: review,  label: 'À vérifier',         color: 'text-red-600' },
+  ].map(s => `
+    <div class="bg-white rounded-xl shadow-card p-4">
+      <div class="text-xl mb-1">${s.icon}</div>
+      <div class="font-bold text-lg ${s.color || 'text-slate-800'}">${s.value}</div>
+      <div class="text-xs text-slate-400">${s.label}</div>
+    </div>
+  `).join('');
+
+  renderResultsGrid();
+}
+
+function renderResultsGrid() {
+  const qs   = getResultsQuestions();
+  const grid = document.getElementById('resultsGrid');
+  const count = document.getElementById('resultsCount');
+
+  count.textContent = `${qs.length} réponse(s)`;
+
+  if (qs.length === 0) {
+    grid.innerHTML = `<div class="py-12 text-center text-slate-400 text-sm">Aucun résultat pour ce filtre.</div>`;
+    return;
+  }
+
+  grid.innerHTML = qs.map(q => {
+    const confClass = confidenceClass(q.confidence || 0);
+    const confLbl   = confidenceLabel(q.confidence || 0);
+    const confTxt   = confidenceText(q.confidence || 0);
+    return `
+      <div class="answer-card bg-white rounded-xl shadow-card overflow-hidden">
+        <!-- Top strip -->
+        <div class="px-5 py-3 border-b border-slate-100 flex items-start justify-between gap-4">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full
+                          ${themeBadgeClass(q.theme)}">
+              ${escape(q.theme)}
+            </span>
+            <span class="text-[10px] text-slate-400 hidden sm:block">${escape(q.sheet || '')}</span>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-[11px] font-bold px-2.5 py-1 rounded-full ${confClass}"
+                  title="${confTxt}">
+              ${confLbl}
+            </span>
+            <button onclick="openEditModal('${q.id}')"
+                    class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center
+                            text-slate-400 hover:text-[#00205C] transition-colors"
+                    title="Modifier la réponse">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5
+                         4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="px-5 py-4 grid md:grid-cols-2 gap-4">
+          <!-- Question -->
+          <div>
+            <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider mb-1.5">
+              Question
+            </p>
+            <p class="text-sm text-slate-700 leading-relaxed">${escape(q.text)}</p>
+          </div>
+          <!-- Answer + Sources -->
+          <div>
+            <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider mb-1.5">
+              Réponse générée
+            </p>
+            <p class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap" id="ans-${q.id}">${renderAnswerWithCitations(q.answer || '—', q.references || [])}</p>
+            ${renderSourcesPanel(q)}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ─── Edit modal ───────────────────────────────────────────────────────────────
+function openEditModal(id) {
+  const q = state.questions.find(q => q.id === id);
+  if (!q) return;
+  state.editingId = id;
+  document.getElementById('modalQuestion').textContent = q.text;
+  document.getElementById('modalAnswer').value = q.answer || '';
+  document.getElementById('editModal').classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  setTimeout(() => document.getElementById('modalAnswer').focus(), 100);
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.add('hidden');
+  document.body.classList.remove('modal-open');
+  state.editingId = null;
+}
+
+async function saveEdit() {
+  const id  = state.editingId;
+  const val = document.getElementById('modalAnswer').value;
+  if (!id) return;
+
+  // Optimistic update
+  const q = state.questions.find(q => q.id === id);
+  if (q) q.answer = val;
+
+  const el = document.getElementById(`ans-${id}`);
+  if (el) el.textContent = val;
+
+  // Persist to backend (fire-and-forget)
+  try {
+    await fetch(`/api/answer/${state.sessionId}/${id}`, {
+      method:  'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ answer: val }),
+    });
+  } catch(_) {}
+
+  closeEditModal();
+}
+
+// ─── Download ─────────────────────────────────────────────────────────────────
+async function downloadResult() {
+  if (!state.sessionId) return;
+  const a = document.createElement('a');
+  a.href     = `/api/download/${state.sessionId}`;
+  a.download = '';
+  a.click();
+}
+
+// ─── Keyboard shortcuts ───────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closePdfModal(); closeEditModal(); }
+  if (e.key === 'Enter' && e.metaKey && state.editingId) saveEdit();
+});
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+renderStepBar();
+loadSamples();
+
+// ─── Tab navigation ───────────────────────────────────────────────────────────
+function switchTab(tab) {
+  const isQ = tab === 'questionnaire';
+  document.getElementById('view-questionnaire').classList.toggle('hidden', !isQ);
+  document.getElementById('view-chatbot').classList.toggle('hidden', isQ);
+  document.getElementById('tab-questionnaire').classList.toggle('active', isQ);
+  document.getElementById('tab-chatbot').classList.toggle('active', !isQ);
+  if (!isQ) document.getElementById('chat-input').focus();
+}
+
+// ─── Chat state ───────────────────────────────────────────────────────────────
+const chatState = {
+  conversationId: crypto.randomUUID(),
+  perimetre:      'Groupe Saint-Gobain',
+  thinking:       false,
+};
+
+function newChatConversation() {
+  chatState.conversationId = crypto.randomUUID();
+  document.getElementById('chat-messages').innerHTML = `
+    <div class="chat-bubble-wrap assistant">
+      <div class="chat-avatar assistant">IA</div>
+      <div>
+        <div class="chat-bubble assistant">
+          Nouvelle conversation démarrée. Comment puis-je vous aider sur les données RSE Saint-Gobain ?
+        </div>
+      </div>
+    </div>`;
+}
+
+function setChatPerimetre(btn, val) {
+  chatState.perimetre = val;
+  document.querySelectorAll('.chat-peri-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function autoResizeChatInput(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const msg   = input.value.trim();
+  if (!msg || chatState.thinking) return;
+
+  appendChatBubble('user', msg);
+  input.value = '';
+  input.style.height = 'auto';
+
+  chatState.thinking = true;
+  document.getElementById('chat-send-btn').disabled = true;
+  const thinkingId = appendChatThinking();
+
+  try {
+    const res  = await fetch('/api/chat', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        message:         msg,
+        conversation_id: chatState.conversationId,
+        perimetre:       chatState.perimetre,
+      }),
+    });
+    const data = await res.json();
+    removeChatThinking(thinkingId);
+
+    if (data.error && !data.answer) {
+      appendChatBubble('assistant', '⚠️ Désolé, une erreur est survenue : ' + data.error);
+    } else {
+      appendChatBubble('assistant', data.answer, data.references || [], data.confidence);
+    }
+  } catch(e) {
+    removeChatThinking(thinkingId);
+    appendChatBubble('assistant', '⚠️ Impossible de contacter l\'assistant. Vérifiez votre connexion.');
+  } finally {
+    chatState.thinking = false;
+    document.getElementById('chat-send-btn').disabled = false;
+    document.getElementById('chat-input').focus();
+  }
+}
+
+function appendChatBubble(role, text, refs, confidence) {
+  const msgs  = document.getElementById('chat-messages');
+  const wrap  = document.createElement('div');
+  wrap.className = `chat-bubble-wrap ${role}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = `chat-avatar ${role}`;
+  avatar.textContent = role === 'user' ? 'Moi' : 'IA';
+
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble ${role}`;
+
+  if (role === 'assistant') {
+    const ansHtml = renderAnswerWithCitations(text || '—', refs || []);
+    let inner = `<div class="whitespace-pre-wrap leading-relaxed">${ansHtml}</div>`;
+    if (refs && refs.length > 0) {
+      const msgId = 'chat-' + Date.now();
+      inner += buildSourcesHTML(msgId, refs);
+    }
+    if (confidence !== undefined) {
+      const cClass = confidenceClass(confidence);
+      const cLbl   = confidenceLabel(confidence);
+      inner += `<div class="mt-2"><span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${cClass}">${cLbl}</span></div>`;
+    }
+    bubble.innerHTML = inner;
+  } else {
+    bubble.textContent = text;
+  }
+
+  const inner = document.createElement('div');
+  inner.appendChild(bubble);
+  wrap.appendChild(avatar);
+  wrap.appendChild(inner);
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendChatThinking() {
+  const msgs = document.getElementById('chat-messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-bubble-wrap assistant';
+  const id = 'thinking-' + Date.now();
+  wrap.id = id;
+  wrap.innerHTML = `
+    <div class="chat-avatar assistant">IA</div>
+    <div>
+      <div class="chat-bubble assistant">
+        <div class="chat-thinking"><span></span><span></span><span></span></div>
+      </div>
+    </div>`;
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+  return id;
+}
+
+function removeChatThinking(id) {
+  document.getElementById(id)?.remove();
+}
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+     PDF VIEWER MODAL
+══════════════════════════════════════════════════════════ -->
+<div id="pdf-modal" class="pdf-modal-overlay hidden" onclick="if(event.target===this)closePdfModal()">
+  <div class="pdf-modal-dialog">
+    <!-- Header -->
+    <div class="pdf-modal-header">
+      <div class="pdf-modal-title" id="pdf-modal-title">Document</div>
+      <a id="pdf-newtab-btn" href="#" target="_blank" rel="noopener"
+         class="pdf-modal-btn" title="Ouvrir dans un nouvel onglet">↗</a>
+      <button class="pdf-modal-btn" onclick="closePdfModal()" title="Fermer">✕</button>
+    </div>
+    <!-- Search hint -->
+    <div id="pdf-search-banner" class="pdf-search-banner hidden">
+      <span class="pdf-search-label">🔍 Passage cité :</span>
+      <span class="pdf-search-value" id="pdf-search-value"></span>
+    </div>
+    <!-- Native PDF viewer via iframe — Chrome renders it with text selection + highlights -->
+    <iframe id="pdf-iframe" class="pdf-iframe" src="about:blank" title="Document PDF"></iframe>
+  </div>
+</div>
+
+<script>
+// ─── PDF Viewer (native Chrome renderer via iframe + Text Fragment highlight) ──
+function openDocViewer(docPath, searchText, displayName) {
+  const modal    = document.getElementById('pdf-modal');
+  const iframe   = document.getElementById('pdf-iframe');
+  const titleEl  = document.getElementById('pdf-modal-title');
+  const bannerEl = document.getElementById('pdf-search-banner');
+  const srchEl   = document.getElementById('pdf-search-value');
+  const tabBtn   = document.getElementById('pdf-newtab-btn');
+
+  titleEl.textContent = displayName || docPath.split('/').pop().replace(/\.[^.]+$/, '').replace(/[_-]/g, ' ');
+
+  // Clean the cited excerpt (strip HTML, collapse whitespace)
+  const cleanSearch = (searchText || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+
+  if (cleanSearch) {
+    srchEl.textContent = cleanSearch.length > 200 ? cleanSearch.slice(0, 200) + '…' : cleanSearch;
+    bannerEl.classList.remove('hidden');
+  } else {
+    bannerEl.classList.add('hidden');
+  }
+
+  // Build URL — append Text Fragment so Chrome highlights the cited passage
+  // Range format  #:~:text=startAnchor,endAnchor  highlights everything between
+  let docUrl = `/api/document?path=${encodeURIComponent(docPath)}`;
+  if (cleanSearch.length >= 10) {
+    // Use a start + end anchor for a robust range highlight
+    const start = encodeURIComponent(cleanSearch.slice(0, 30));
+    const end   = cleanSearch.length > 50
+      ? ',' + encodeURIComponent(cleanSearch.slice(-25))
+      : '';
+    docUrl += `#:~:text=${start}${end}`;
+  }
+
+  tabBtn.href = docUrl;
+  iframe.src  = docUrl;
+  modal.classList.remove('hidden');
+}
+
+function closePdfModal() {
+  document.getElementById('pdf-modal').classList.add('hidden');
+  document.getElementById('pdf-iframe').src = 'about:blank'; // free memory
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" width="1200" height="780"
+     font-family="'DM Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif">
+
+  <defs>
+    <marker id="arr-dark" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <path d="M0,1 L0,6 L6,3.5 z" fill="#1B3138"/>
+    </marker>
+    <marker id="arr-orange" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <path d="M0,1 L0,6 L6,3.5 z" fill="#FF5F46"/>
+    </marker>
+    <marker id="arr-green" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <path d="M0,1 L0,6 L6,3.5 z" fill="#00A972"/>
+    </marker>
+    <marker id="arr-teal" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <path d="M0,1 L0,6 L6,3.5 z" fill="#1B5162"/>
+    </marker>
+  </defs>
+
+  <!-- ── Warm off-white background ───────────────────────────────────── -->
+  <rect width="1200" height="780" fill="#F9F6F4"/>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════════════════════════════ -->
+  <rect x="0" y="0" width="1200" height="72" fill="#1B3138"/>
+
+  <!-- Saint-Gobain pill (left) -->
+  <rect x="24" y="20" width="170" height="32" rx="16" fill="#00205C"/>
+  <circle cx="44" cy="36" r="7" fill="#008751"/>
+  <text x="116" y="40" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">Saint-Gobain · SGDBF</text>
+
+  <!-- Title -->
+  <text x="600" y="35" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.2">
+    Assistant RSE — Architecture Technique
+  </text>
+  <text x="600" y="57" font-size="11" fill="#9EB7BE" text-anchor="middle">
+    Auto-complétion de questionnaires RSE par IA · Databricks Platform
+  </text>
+
+  <!-- Databricks pill (right) -->
+  <rect x="1006" y="20" width="170" height="32" rx="16" fill="#FF5F46"/>
+  <!-- Spark logo simplified -->
+  <polygon points="1020,30 1024,36 1020,42 1030,36" fill="#FFFFFF" opacity="0.9"/>
+  <polygon points="1030,36 1034,30 1034,42 1030,36" fill="#FFFFFF" opacity="0.6"/>
+  <text x="1091" y="40" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">Powered by Databricks</text>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       COLUMN LABELS
+  ══════════════════════════════════════════════════════════════════ -->
+  <text x="120" y="99" font-size="11" font-weight="700" fill="#FF5F46" text-anchor="middle" letter-spacing="1">CLIENT</text>
+  <text x="400" y="99" font-size="11" font-weight="700" fill="#FF5F46" text-anchor="middle" letter-spacing="1">DATABRICKS APPS</text>
+  <text x="730" y="99" font-size="11" font-weight="700" fill="#FF5F46" text-anchor="middle" letter-spacing="1">AGENT BRICKS</text>
+  <text x="1040" y="99" font-size="11" font-weight="700" fill="#FF5F46" text-anchor="middle" letter-spacing="1">DATA LAYER</text>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       USER / CLIENT BOX
+  ══════════════════════════════════════════════════════════════════ -->
+  <rect x="28" y="108" width="184" height="190" rx="14" fill="#FFFFFF" stroke="#EEEDE9" stroke-width="2"/>
+  <!-- Icon area -->
+  <rect x="48" y="124" width="144" height="100" rx="10" fill="#F9F6F4"/>
+  <!-- Browser chrome -->
+  <rect x="60" y="136" width="120" height="80" rx="7" fill="#EEEDE9"/>
+  <rect x="60" y="136" width="120" height="18" rx="7" fill="#618794"/>
+  <rect x="60" y="148" width="120" height="6" fill="#618794"/>
+  <!-- traffic dots -->
+  <circle cx="72" cy="145" r="3" fill="#FF5F46" opacity="0.8"/>
+  <circle cx="83" cy="145" r="3" fill="#FFAB00" opacity="0.8"/>
+  <circle cx="94" cy="145" r="3" fill="#00A972" opacity="0.8"/>
+  <!-- URL bar -->
+  <rect x="103" y="141" width="68" height="8" rx="4" fill="#FFFFFF" opacity="0.5"/>
+  <!-- Page content lines -->
+  <rect x="70" y="164" width="100" height="5" rx="2" fill="#9EB7BE" opacity="0.6"/>
+  <rect x="70" y="175" width="80" height="5" rx="2" fill="#9EB7BE" opacity="0.4"/>
+  <rect x="70" y="186" width="90" height="5" rx="2" fill="#9EB7BE" opacity="0.5"/>
+  <text x="120" y="244" font-size="14" font-weight="700" fill="#1B3138" text-anchor="middle">Navigateur Web</text>
+  <text x="120" y="262" font-size="10" fill="#618794" text-anchor="middle">Utilisateur Final</text>
+  <text x="120" y="278" font-size="10" fill="#618794" text-anchor="middle">Saint-Gobain / SGDBF</text>
+
+  <!-- ── Arrow 1: Upload ────────────────────────────────────────── -->
+  <line x1="215" y1="173" x2="268" y2="173" stroke="#1B3138" stroke-width="1.8" marker-end="url(#arr-dark)"/>
+  <rect x="218" y="158" width="48" height="15" rx="7" fill="#EEEDE9"/>
+  <text x="242" y="169" font-size="9" font-weight="700" fill="#1B3138" text-anchor="middle">① Upload</text>
+
+  <!-- ── Arrow 6: Download ──────────────────────────────────────── -->
+  <line x1="268" y1="203" x2="215" y2="203" stroke="#00A972" stroke-width="1.8" marker-end="url(#arr-green)"/>
+  <rect x="218" y="206" width="48" height="15" rx="7" fill="#ECFDF5"/>
+  <text x="242" y="217" font-size="9" font-weight="700" fill="#00A972" text-anchor="middle">⑥ Excel</text>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       DATABRICKS APPS BOX
+  ══════════════════════════════════════════════════════════════════ -->
+  <rect x="268" y="108" width="280" height="330" rx="14" fill="#FFFFFF" stroke="#FF5F46" stroke-width="2"/>
+  <!-- Top accent bar -->
+  <rect x="268" y="108" width="280" height="44" rx="14" fill="#1B3138"/>
+  <rect x="268" y="136" width="280" height="16" fill="#1B3138"/>
+  <!-- Spark icon -->
+  <polygon points="282,118 287,126 282,134 292,126" fill="#FF5F46"/>
+  <polygon points="292,126 297,118 297,134 292,126" fill="#FF5F46" opacity="0.55"/>
+  <text x="408" y="135" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">Databricks Apps</text>
+
+  <!-- Sub-label -->
+  <text x="408" y="167" font-size="10" fill="#618794" text-anchor="middle">FastAPI + uvicorn · SPA HTML/JS · SSE</text>
+
+  <!-- Pill: File Parser -->
+  <rect x="288" y="180" width="240" height="36" rx="8" fill="#EEEDE9"/>
+  <text x="308" y="202" font-size="11" font-weight="700" fill="#1B3138">⚡  Parseur de fichiers</text>
+  <text x="308" y="212" font-size="9" fill="#618794">Excel (openpyxl) · PDF (pdfplumber)</text>
+
+  <!-- Pill: Wizard -->
+  <rect x="288" y="224" width="240" height="36" rx="8" fill="#EEEDE9"/>
+  <text x="308" y="246" font-size="11" font-weight="700" fill="#1B3138">🧙  Wizard 4 étapes</text>
+  <text x="308" y="256" font-size="9" fill="#618794">Upload · Sélection · IA · Résultats</text>
+
+  <!-- Pill: SSE Engine -->
+  <rect x="288" y="268" width="240" height="36" rx="8" fill="#EEEDE9"/>
+  <text x="308" y="290" font-size="11" font-weight="700" fill="#1B3138">📡  SSE Streaming Engine</text>
+  <text x="308" y="300" font-size="9" fill="#618794">Réponses en temps réel · barre de progression</text>
+
+  <!-- Pill: Excel Output -->
+  <rect x="288" y="312" width="240" height="36" rx="8" fill="#EEEDE9"/>
+  <text x="308" y="334" font-size="11" font-weight="700" fill="#1B3138">📊  Génération Excel</text>
+  <text x="308" y="344" font-size="9" fill="#618794">Réponses + sources dans l'original</text>
+
+  <!-- Auth note -->
+  <text x="408" y="378" font-size="9" fill="#9EB7BE" text-anchor="middle" font-style="italic">Service Principal OAuth M2M · Databricks SDK</text>
+  <text x="408" y="392" font-size="9" fill="#9EB7BE" text-anchor="middle" font-style="italic">fevm-rodri-tko.cloud.databricks.com</text>
+  <text x="408" y="406" font-size="9" fill="#9EB7BE" text-anchor="middle" font-style="italic">Confiance haute / moyenne / à vérifier</text>
+
+  <!-- ── Arrow 2: App → KA ──────────────────────────────────────── -->
+  <line x1="550" y1="188" x2="588" y2="188" stroke="#1B3138" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arr-dark)"/>
+  <rect x="552" y="173" width="34" height="15" rx="7" fill="#EEEDE9"/>
+  <text x="569" y="184" font-size="9" font-weight="700" fill="#1B3138" text-anchor="middle">② Q.</text>
+
+  <!-- ── Arrow 5: KA → App ──────────────────────────────────────── -->
+  <line x1="588" y1="213" x2="550" y2="213" stroke="#FF5F46" stroke-width="1.8" marker-end="url(#arr-orange)"/>
+  <rect x="552" y="216" width="34" height="15" rx="7" fill="#FFF0EE"/>
+  <text x="569" y="227" font-size="9" font-weight="700" fill="#FF5F46" text-anchor="middle">⑤ SSE</text>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       KNOWLEDGE ASSISTANT (AGENT BRICKS)
+  ══════════════════════════════════════════════════════════════════ -->
+  <rect x="588" y="108" width="300" height="330" rx="14" fill="#FFFFFF" stroke="#FF5F46" stroke-width="2"/>
+  <rect x="588" y="108" width="300" height="44" rx="14" fill="#1B3138"/>
+  <rect x="588" y="136" width="300" height="16" fill="#1B3138"/>
+  <!-- Spark icon -->
+  <polygon points="602,118 607,126 602,134 612,126" fill="#FF5F46"/>
+  <polygon points="612,126 617,118 617,134 612,126" fill="#FF5F46" opacity="0.55"/>
+  <text x="738" y="130" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">Agent Bricks</text>
+  <text x="738" y="148" font-size="10" fill="#9EB7BE" text-anchor="middle">Knowledge Assistant</text>
+
+  <!-- Endpoint label -->
+  <rect x="608" y="162" width="260" height="22" rx="11" fill="#EEEDE9"/>
+  <text x="738" y="177" font-size="10" font-weight="700" fill="#1B5162" text-anchor="middle">ka-a2804329-endpoint  ·  Serving Endpoint</text>
+
+  <!-- Pill: LLM + RAG -->
+  <rect x="608" y="194" width="260" height="48" rx="8" fill="#FFF0EE" stroke="#FF5F46" stroke-width="1"/>
+  <text x="628" y="216" font-size="11" font-weight="700" fill="#1B3138">🤖  LLM + RAG</text>
+  <text x="628" y="230" font-size="9" fill="#618794">Retrieval-Augmented Generation</text>
+  <text x="628" y="242" font-size="9" fill="#618794">Citations · titres de documents sources</text>
+
+  <!-- Pill: Knowledge Base -->
+  <rect x="608" y="252" width="260" height="48" rx="8" fill="#EEEDE9"/>
+  <text x="628" y="274" font-size="11" font-weight="700" fill="#1B3138">📚  Base de Connaissances RSE</text>
+  <text x="628" y="288" font-size="9" fill="#618794">Rapports annuels · Politiques · Données 2023</text>
+  <text x="628" y="300" font-size="9" fill="#618794">Périmètre : SGDBF · Groupe SG · Point P</text>
+
+  <!-- Pill: Perimeter -->
+  <rect x="608" y="310" width="260" height="36" rx="8" fill="#EEEDE9"/>
+  <text x="628" y="332" font-size="11" font-weight="700" fill="#1B3138">🎯  Détection de thème</text>
+  <text x="628" y="342" font-size="9" fill="#618794">CO2 · Déchets · Social · Gouvernance · Achats</text>
+
+  <text x="738" y="385" font-size="9" fill="#9EB7BE" text-anchor="middle" font-style="italic">Prompt enrichi · Réponse factuelle · Score de confiance</text>
+  <text x="738" y="400" font-size="9" fill="#9EB7BE" text-anchor="middle" font-style="italic">Annotations file_citation → colonne Documents justificatifs</text>
+  <text x="738" y="415" font-size="9" fill="#9EB7BE" text-anchor="middle" font-style="italic">conversation_id pour cohérence inter-questions</text>
+
+  <!-- ── Arrow 3: KA → Vector Search ───────────────────────────── -->
+  <line x1="890" y1="220" x2="928" y2="220" stroke="#1B5162" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arr-teal)"/>
+  <rect x="892" y="205" width="34" height="15" rx="7" fill="#E0F2F1"/>
+  <text x="909" y="216" font-size="9" font-weight="700" fill="#1B5162" text-anchor="middle">③ Vec</text>
+
+  <!-- ── Arrow 4: VS → KA ───────────────────────────────────────── -->
+  <line x1="928" y1="245" x2="890" y2="245" stroke="#1B5162" stroke-width="1.8" marker-end="url(#arr-teal)"/>
+  <rect x="892" y="248" width="34" height="15" rx="7" fill="#E0F2F1"/>
+  <text x="909" y="259" font-size="9" font-weight="700" fill="#1B5162" text-anchor="middle">④ k-NN</text>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       DATA LAYER — right column, two stacked boxes
+  ══════════════════════════════════════════════════════════════════ -->
+
+  <!-- VECTOR SEARCH -->
+  <rect x="928" y="108" width="244" height="195" rx="14" fill="#FFFFFF" stroke="#1B5162" stroke-width="2"/>
+  <rect x="928" y="108" width="244" height="44" rx="14" fill="#1B5162"/>
+  <rect x="928" y="136" width="244" height="16" fill="#1B5162"/>
+  <text x="1050" y="135" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">Vector Search</text>
+
+  <text x="1050" y="166" font-size="10" fill="#618794" text-anchor="middle" font-weight="600">Index sémantique · embeddings vectoriels</text>
+
+  <!-- Vector bars (visual) -->
+  <rect x="948" y="178" width="205" height="10" rx="4" fill="#EEEDE9"/>
+  <rect x="948" y="178" width="160" height="10" rx="4" fill="#1B5162" opacity="0.7"/>
+  <rect x="948" y="194" width="205" height="10" rx="4" fill="#EEEDE9"/>
+  <rect x="948" y="194" width="110" height="10" rx="4" fill="#1B5162" opacity="0.5"/>
+  <rect x="948" y="210" width="205" height="10" rx="4" fill="#EEEDE9"/>
+  <rect x="948" y="210" width="185" height="10" rx="4" fill="#1B5162" opacity="0.9"/>
+  <rect x="948" y="226" width="205" height="10" rx="4" fill="#EEEDE9"/>
+  <rect x="948" y="226" width="80" height="10" rx="4" fill="#1B5162" opacity="0.4"/>
+
+  <text x="1050" y="260" font-size="9" fill="#9EB7BE" text-anchor="middle">Similarité cosinus · Top-k retrieval</text>
+  <text x="1050" y="274" font-size="9" fill="#9EB7BE" text-anchor="middle">Delta Sync · Auto-refresh</text>
+  <text x="1050" y="288" font-size="9" fill="#9EB7BE" text-anchor="middle" font-style="italic">Sync depuis Unity Catalog volumes</text>
+
+  <!-- Arrow VS ↓ Unity Catalog -->
+  <line x1="1050" y1="306" x2="1050" y2="340" stroke="#9EB7BE" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-teal)"/>
+
+  <!-- UNITY CATALOG -->
+  <rect x="928" y="340" width="244" height="198" rx="14" fill="#FFFFFF" stroke="#00A972" stroke-width="2"/>
+  <rect x="928" y="340" width="244" height="44" rx="14" fill="#1B3138"/>
+  <rect x="928" y="368" width="244" height="16" fill="#1B3138"/>
+  <text x="1050" y="367" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">Unity Catalog</text>
+
+  <text x="1050" y="398" font-size="10" fill="#618794" text-anchor="middle" font-weight="600">Volumes — Base de connaissances RSE</text>
+
+  <!-- Document type pills -->
+  <rect x="942" y="410" width="70" height="58" rx="8" fill="#ECFDF5" stroke="#86EFAC" stroke-width="1"/>
+  <text x="977" y="433" font-size="20" text-anchor="middle">📄</text>
+  <text x="977" y="450" font-size="8" fill="#065F46" text-anchor="middle" font-weight="600">Rapports</text>
+  <text x="977" y="461" font-size="8" fill="#065F46" text-anchor="middle">annuels</text>
+
+  <rect x="1022" y="410" width="70" height="58" rx="8" fill="#ECFDF5" stroke="#86EFAC" stroke-width="1"/>
+  <text x="1057" y="433" font-size="20" text-anchor="middle">📊</text>
+  <text x="1057" y="450" font-size="8" fill="#065F46" text-anchor="middle" font-weight="600">Données</text>
+  <text x="1057" y="461" font-size="8" fill="#065F46" text-anchor="middle">RSE 2023</text>
+
+  <rect x="1102" y="410" width="58" height="58" rx="8" fill="#ECFDF5" stroke="#86EFAC" stroke-width="1"/>
+  <text x="1131" y="433" font-size="20" text-anchor="middle">📋</text>
+  <text x="1131" y="450" font-size="8" fill="#065F46" text-anchor="middle" font-weight="600">Politiques</text>
+  <text x="1131" y="461" font-size="8" fill="#065F46" text-anchor="middle">RSE</text>
+
+  <text x="1050" y="490" font-size="9" fill="#9EB7BE" text-anchor="middle">Gouvernance · Lineage · Access Control</text>
+  <text x="1050" y="504" font-size="9" fill="#9EB7BE" text-anchor="middle">Delta Lake · columnar storage</text>
+  <text x="1050" y="518" font-size="9" fill="#9EB7BE" text-anchor="middle" font-style="italic">Catalogue unifié multi-périmètres</text>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       BOTTOM PANEL — Formats + Legend
+  ══════════════════════════════════════════════════════════════════ -->
+
+  <!-- Formats panel -->
+  <rect x="28" y="460" width="860" height="205" rx="14" fill="#FFFFFF" stroke="#EEEDE9" stroke-width="2"/>
+  <rect x="28" y="460" width="860" height="38" rx="14" fill="#1B3138"/>
+  <rect x="28" y="484" width="860" height="14" fill="#1B3138"/>
+  <text x="458" y="484" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">Formats supportés &amp; Fonctionnalités</text>
+
+  <!-- Excel col -->
+  <rect x="50" y="510" width="195" height="135" rx="10" fill="#F9F6F4"/>
+  <rect x="50" y="510" width="195" height="30" rx="10" fill="#ECFDF5"/>
+  <rect x="50" y="528" width="195" height="12" fill="#ECFDF5"/>
+  <text x="147" y="529" font-size="12" font-weight="700" fill="#065F46" text-anchor="middle">📗  Excel (.xlsx)</text>
+  <text x="65" y="550" font-size="10" fill="#1B3138">✓ Détection auto des colonnes</text>
+  <text x="65" y="565" font-size="10" fill="#1B3138">✓ Multi-feuilles (EcoVadis, Social…)</text>
+  <text x="65" y="580" font-size="10" fill="#1B3138">✓ Votre réponse vs Type de réponse</text>
+  <text x="65" y="595" font-size="10" fill="#1B3138">✓ Réponses en vert dans l'original</text>
+  <text x="65" y="610" font-size="10" fill="#1B3138">✓ Sources en bleu col. Documents</text>
+  <text x="65" y="630" font-size="8" fill="#9EB7BE" font-style="italic">questionnaire_EcoVadis · Social_RH · Achats</text>
+
+  <!-- PDF col -->
+  <rect x="265" y="510" width="195" height="135" rx="10" fill="#F9F6F4"/>
+  <rect x="265" y="510" width="195" height="30" rx="10" fill="#FFF1F2"/>
+  <rect x="265" y="528" width="195" height="12" fill="#FFF1F2"/>
+  <text x="362" y="529" font-size="12" font-weight="700" fill="#991B1B" text-anchor="middle">📕  PDF</text>
+  <text x="280" y="550" font-size="10" fill="#1B3138">✓ Extraction texte (pdfplumber)</text>
+  <text x="280" y="565" font-size="10" fill="#1B3138">✓ Détection numérotation 1. / Q1:</text>
+  <text x="280" y="580" font-size="10" fill="#1B3138">✓ Phrases interrogatives</text>
+  <text x="280" y="595" font-size="10" fill="#1B3138">✓ Export Q&amp;A Excel thématique</text>
+  <text x="280" y="610" font-size="10" fill="#1B3138">✓ Regroupement par thème RSE</text>
+  <text x="280" y="630" font-size="8" fill="#9EB7BE" font-style="italic">questionnaire_Biodiversite_2024.pdf</text>
+
+  <!-- Results col -->
+  <rect x="480" y="510" width="195" height="135" rx="10" fill="#F9F6F4"/>
+  <rect x="480" y="510" width="195" height="30" rx="10" fill="#EFF6FF"/>
+  <rect x="480" y="528" width="195" height="12" fill="#EFF6FF"/>
+  <text x="577" y="529" font-size="12" font-weight="700" fill="#1E40AF" text-anchor="middle">✅  Résultats IA</text>
+  <text x="495" y="550" font-size="10" fill="#1B3138">✓ Streaming SSE temps réel</text>
+  <text x="495" y="565" font-size="10" fill="#1B3138">✓ Score de confiance (0–100%)</text>
+  <text x="495" y="580" font-size="10" fill="#1B3138">✓ Filtres : Haute / Moy. / À vérifier</text>
+  <text x="495" y="595" font-size="10" fill="#1B3138">✓ Édition manuelle des réponses</text>
+  <text x="495" y="610" font-size="10" fill="#1B3138">✓ Sources documentaires citées</text>
+  <text x="495" y="630" font-size="8" fill="#9EB7BE" font-style="italic">Validation humaine recommandée</text>
+
+  <!-- Data flow steps (legend) -->
+  <rect x="695" y="510" width="175" height="135" rx="10" fill="#F9F6F4"/>
+  <text x="782" y="530" font-size="11" font-weight="700" fill="#1B3138" text-anchor="middle">Flux de données</text>
+  <line x1="706" y1="536" x2="858" y2="536" stroke="#EEEDE9" stroke-width="1"/>
+  <text x="710" y="552" font-size="9" fill="#1B3138">① Upload questionnaire</text>
+  <text x="710" y="567" font-size="9" fill="#1B3138">② Question → KA endpoint</text>
+  <text x="710" y="582" font-size="9" fill="#1B3138">③ Embed query → Vector Search</text>
+  <text x="710" y="597" font-size="9" fill="#1B3138">④ Top-k chunks retournés</text>
+  <text x="710" y="612" font-size="9" fill="#1B3138">⑤ Réponse SSE + doc sources</text>
+  <text x="710" y="627" font-size="9" fill="#1B3138">⑥ Téléchargement Excel complété</text>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════════════════════════════ -->
+  <rect x="0" y="750" width="1200" height="30" fill="#1B3138"/>
+  <text x="600" y="769" font-size="9" fill="#618794" text-anchor="middle">
+    Saint-Gobain Distribution Bâtiment France · fevm-rodri-tko.cloud.databricks.com · Agent Bricks · Unity Catalog · Vector Search · Databricks Apps · Avril 2026
+  </text>
+
+</svg>
