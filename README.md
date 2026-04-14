@@ -6,6 +6,29 @@ Upload an empty RSE/CSR questionnaire (Excel or PDF), let AI answer every questi
 
 ---
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><b>Step 2 — Question review</b></td>
+    <td align="center"><b>Step 4 — Results with citations</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/screenshot_1_step2_verify.png" alt="Step 2 – review detected questions, filter by RSE theme, select/deselect" /></td>
+    <td><img src="docs/screenshots/screenshot_3_step4_results.png" alt="Step 4 – AI-generated answers with inline citation badges and source cards" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Chatbot tab — Answer with sources</b></td>
+    <td align="center"><b>Chatbot tab — 3 cited source documents</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/screenshot_2_chatbot_answer.png" alt="Assistant RSE chatbot tab with answer, inline citations and confidence score" /></td>
+    <td><img src="docs/screenshots/screenshot_4_chatbot_sources.png" alt="Chatbot answer showing 3 clickable source cards with document excerpts" /></td>
+  </tr>
+</table>
+
+---
+
 ## Table of Contents
 
 1. [What it does](#what-it-does)
