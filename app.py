@@ -9,6 +9,7 @@ import os
 import re
 import uuid
 import tempfile
+import threading
 import urllib.parse
 from pathlib import Path
 from typing import Optional
@@ -909,7 +910,23 @@ def generate_answers(req: GenerateRequest):
 
     def event_stream():
         for i, question in enumerate(to_answer):
-            result = query_ka(question["text"], req.perimetre, convo_id)
+            # Run the (blocking) KA call in a thread and send SSE keepalive
+            # comments every 10 s while waiting — prevents the Databricks Apps
+            # reverse proxy from closing the HTTP/2 stream during silence.
+            result_box: dict = {}
+            done = threading.Event()
+
+            def _call_ka():
+                result_box["result"] = query_ka(question["text"], req.perimetre, convo_id)
+                done.set()
+
+            threading.Thread(target=_call_ka, daemon=True).start()
+
+            while not done.wait(timeout=10):
+                yield ": keepalive\n\n"
+
+            result = result_box["result"]
+
             for q in session["questions"]:
                 if q["id"] == question["id"]:
                     q["answer"]     = result.get("answer", "")
