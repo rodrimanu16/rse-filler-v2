@@ -173,32 +173,42 @@ The `WORKSPACE_HOST` is injected automatically by Databricks Apps via the `DATAB
 
 #### 3c. Authenticate with the Databricks CLI
 
+> **SSO users (no password):** Use the command below — it opens a **browser window** for your company SSO login. Do **not** run `databricks configure` (that asks for a Personal Access Token which you don't need).
+
 ```bash
 databricks auth login --host https://<your-workspace>.cloud.databricks.com
-# Follow the browser OAuth flow
 ```
 
-Verify authentication:
+A browser tab will open automatically. Log in with your SSO credentials (same as your Databricks workspace login). Once done, return to the terminal — it will confirm authentication.
+
+Verify it worked:
 
 ```bash
 databricks current-user me
+# Should print your email address
 ```
+
+> **Troubleshooting auth:** If the CLI still asks for username/password, your CLI version may be outdated. Update it:
+> ```bash
+> # macOS
+> brew upgrade databricks
+> # or re-download from https://docs.databricks.com/dev-tools/cli/install.html
+> ```
 
 #### 3d. Upload the source code to your workspace
 
 ```bash
-# Replace <your-email> with your Databricks workspace user email
+# Replace <your-email> with your Databricks workspace user email (e.g. marie.dupont@company.com)
 WORKSPACE_PATH="/Workspace/Users/<your-email>/rse-filler-v2"
 
-databricks workspace mkdirs "$WORKSPACE_PATH"
 databricks workspace mkdirs "$WORKSPACE_PATH/static"
 databricks workspace mkdirs "$WORKSPACE_PATH/samples"
 databricks workspace mkdirs "$WORKSPACE_PATH/docs"
 
-# Upload all files
-databricks workspace import "$WORKSPACE_PATH/app.py"       --file app.py       --format AUTO --overwrite
-databricks workspace import "$WORKSPACE_PATH/app.yaml"     --file app.yaml     --format AUTO --overwrite
-databricks workspace import "$WORKSPACE_PATH/requirements.txt" --file requirements.txt --format AUTO --overwrite
+# Upload all source files
+databricks workspace import "$WORKSPACE_PATH/app.py"            --file app.py            --format AUTO --overwrite
+databricks workspace import "$WORKSPACE_PATH/app.yaml"          --file app.yaml          --format AUTO --overwrite
+databricks workspace import "$WORKSPACE_PATH/requirements.txt"  --file requirements.txt  --format AUTO --overwrite
 databricks workspace import "$WORKSPACE_PATH/static/index.html" --file static/index.html --format AUTO --overwrite
 
 # Upload sample questionnaires
@@ -206,6 +216,12 @@ for f in samples/*; do
   databricks workspace import "$WORKSPACE_PATH/$f" --file "$f" --format AUTO --overwrite
 done
 ```
+
+> **Alternative — no CLI upload needed:** You can also upload the files directly via the Databricks UI:
+> 1. Open your workspace → **Workspace** (left sidebar) → navigate to `Users/<your-email>/`
+> 2. Click **⋮ (kebab menu)** → **Create** → **Folder**, name it `rse-filler-v2`
+> 3. Repeat to create sub-folders `static` and `samples` inside it
+> 4. In each folder, click **⋮** → **Import** and upload the corresponding files from this repo
 
 #### 3e. Create and deploy the Databricks App
 
@@ -222,6 +238,8 @@ The CLI will return the app URL, e.g.:
 ```
 https://rse-filler-v2-<workspace-id>.aws.databricksapps.com
 ```
+
+> **Alternative — deploy from the UI:** In the Databricks sidebar go to **Compute** → **Apps** → **Create App**. Give it a name, select **Custom app**, and set the source code path to the workspace folder you uploaded in step 3d.
 
 ---
 
